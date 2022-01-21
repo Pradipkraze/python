@@ -1,0 +1,22 @@
+#-------------------------------------------------------------------------------
+# Name:        Regex definition funtion
+# Purpose:
+#
+# Author:      prprasad
+#
+# Created:     21/01/2022
+# Copyright:   (c) prprasad 2022
+# Licence:     <your licence>
+#-------------------------------------------------------------------------------
+
+import re
+
+
+
+def rex(x,y,z):
+    e = re.sub(x,y,z, flags=re.IGNORECASE)
+    return(e)
+
+r = rex("pradip","kisor","pradip kumar")
+
+print(r)
