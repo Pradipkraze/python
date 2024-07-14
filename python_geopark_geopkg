@@ -1,0 +1,40 @@
+import geopandas as gpd
+
+def find_polygons_within_usa(geoparquets_folder, usa_shapefile, output_geopackage):
+  """
+  Reads geoparquets files from a folder, finds polygons within the USA shapefile,
+  and writes the results to a geopackage.
+
+  Args:
+      geoparquets_folder (str): Path to the folder containing geoparquet files.
+      usa_shapefile (str): Path to the USA shapefile.
+      output_geopackage (str): Path to the output geopackage file.
+  """
+  # Read the USA shapefile
+  usa_gdf = gpd.read_file(usa_shapefile)
+
+  # Loop through geoparquet files in the folder
+  for filename in os.listdir(geoparquets_folder):
+    if filename.endswith('.parquet'):
+      # Read the geoparquet file
+      geoparquet_path = os.path.join(geoparquets_folder, filename)
+      geoparquet_gdf = gpd.read_parquet(geoparquet_path)
+
+      # Perform spatial join to find polygons within USA
+      joined_gdf = gpd.sjoin(geoparquet_gdf, usa_gdf, how='inner', op='within')
+
+      # Write the joined data to a new geopackage layer
+      output_filename = os.path.splitext(filename)[0] + '.gpkg'  # Remove .parquet extension
+      output_path = os.path.join(output_geopackage, output_filename)
+      joined_gdf.to_file(output_path, driver="GPKG")  # Use GPKG driver for geopackage
+
+if __name__ == "__main__":
+  # Replace these paths with your actual file locations
+  geoparquets_folder = "path/to/geoparquet/folder"
+  usa_shapefile = "path/to/usa.shp"
+  output_geopackage = "path/to/output.gpkg"
+
+  find_polygons_within_usa(geoparquets_folder, usa_shapefile, output_geopackage)
+
+
+
