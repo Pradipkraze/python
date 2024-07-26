@@ -1,4 +1,6 @@
 import geopandas as gpd
+import os
+from pyogrio import write_dataframe
 
 def find_polygons_within_usa(geoparquets_folder, usa_shapefile, output_geopackage):
   """
@@ -18,23 +20,36 @@ def find_polygons_within_usa(geoparquets_folder, usa_shapefile, output_geopackag
     if filename.endswith('.parquet'):
       # Read the geoparquet file
       geoparquet_path = os.path.join(geoparquets_folder, filename)
-      geoparquet_gdf = gpd.read_parquet(geoparquet_path)
+      geoparquet_gdf = gpd.read_parquet(geoparquet_path, columns=["id", "geometry", "names", "categories","brand"] )
+      
+      #geoparquet_gdf = geoparquet_gdf.drop(['bbox', 'sources', 'roof_color', 'roof_orientation', 'facade_material', 'facade_color', 'roof_direction', 'names'], axis=1, inplace=False)
 
       # Perform spatial join to find polygons within USA
-      joined_gdf = gpd.sjoin(geoparquet_gdf, usa_gdf, how='inner', op='within')
+      joined_gdf = gpd.sjoin(geoparquet_gdf, usa_gdf, predicate='within')
 
+      joined_gdf = joined_gdf.to_wkt()
+      
+      #joined_gdf = gpd.sjoin(geoparquet_gdf, usa_gdf, how='inner', predicate='within')
       # Write the joined data to a new geopackage layer
-      output_filename = os.path.splitext(filename)[0] + '.gpkg'  # Remove .parquet extension
+      output_filename = os.path.splitext(filename)[0] + '.sqlite'  # Remove .parquet extension
       output_path = os.path.join(output_geopackage, output_filename)
-      joined_gdf.to_file(output_path, driver="GPKG")  # Use GPKG driver for geopackage
+      #joined_gdf.to_file(output_path, driver="GPKG")  # Use GPKG driver for geopackage
+      joined_gdf = joined_gdf.astype(str)
+      #write_dataframe(joined_gdf, output_path, driver="sqlite")
+      #write_dataframe(joined_gdf, output_path, driver="SQLite", layer=filename)
 
+      joined_gdf.to_file("output_path", layer='POI', driver="GPKG")
+
+
+        
+      #write_dataframe(joined_gdf, output_path, driver="CSV")
+      print(filename)
+
+#from pyogrio import write_dataframe
 if __name__ == "__main__":
   # Replace these paths with your actual file locations
-  geoparquets_folder = "path/to/geoparquet/folder"
-  usa_shapefile = "path/to/usa.shp"
-  output_geopackage = "path/to/output.gpkg"
+  geoparquets_folder = "/Users/dump2/"
+  usa_shapefile = "/Users/hawaii_ogc.shp"
+  output_geopackage = "/Users/sqlite"
 
   find_polygons_within_usa(geoparquets_folder, usa_shapefile, output_geopackage)
-
-
-
